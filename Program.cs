@@ -1,15 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Serilog;
+﻿using System.CommandLine;
+using Stegosaurus.CLI;
+using Stegosaurus.Config;
 
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateLogger();
+using var serviceProvider = LoggingConfig.ConfigureLogging();
 
-using var serviceProvider = new ServiceCollection()
-    .AddLogging(builder => 
-    {
-        builder.ClearProviders();
-        builder.AddSerilog();
-    }).BuildServiceProvider();
+var rootCommand = ArgParser.BuildCommand();
+await rootCommand.InvokeAsync(args);
