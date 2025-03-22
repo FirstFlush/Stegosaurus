@@ -3,11 +3,13 @@ namespace Stegosaurus.CLI
 {
     public static class CliInputHandler
     {
-        public static bool IsValid(string filePath)
+        public static string ResolveFilePath(string filePath)
         {
             if (!Path.IsPathRooted(filePath))
                 filePath = Path.GetFullPath(filePath);
-            return Path.Exists(filePath);
+            if (Path.Exists(filePath))
+                return filePath;
+            throw new FileNotFoundException($"File not found:  `{filePath}`");
         }
 
         public static string ReadPassword()

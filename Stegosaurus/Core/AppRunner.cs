@@ -1,7 +1,10 @@
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using Stegosaurus.CLI;
 using Stegosaurus.Crypto;
-
+using Stegosaurus.Stego;
 
 namespace Stegosaurus.Core
 {
@@ -15,33 +18,71 @@ namespace Stegosaurus.Core
             _logger = logger;
         }
 
-        public void CheckFilePath(string filePath)
+        public string ResolveFilePath(string filePath)
         {
-            if (!CliInputHandler.IsValid(filePath))
+            try
+            {
+                return CliInputHandler.ResolveFilePath(filePath);
+            }
+            catch (FileNotFoundException)
             {
                 _logger.LogError("Invalid file path: {Path}", filePath);
+                Environment.Exit(1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unexpected error while resolving file path: {Message}", ex.Message);
+                Environment.Exit(1);
+            }
+            return null!;
+        }
+
+        private void SaveEncodedFile(Image<Rgba32> image, string filePath)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            string extension = Path.GetExtension(filePath);
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH:mm:ss"); 
+            string newFileName = $"{fileName}__{timestamp}{extension}";
+            string newFilePath = Path.Combine(Environment.CurrentDirectory, newFileName);
+            try
+            {
+                image.Save(newFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unexpected error while saving file: {Message}", ex.Message);
                 Environment.Exit(1);
             }
         }
 
         public void RunEncrypt(string filePath, string password, string message)
         {
-            _logger.Log(LogLevel.Information, "running encrypt");
-
-            CheckFilePath(filePath);
+            filePath = ResolveFilePath(filePath);
             while (string.IsNullOrWhiteSpace(password))
                 password = CliInputHandler.ReadPassword();
-
-            Console.WriteLine(password);
-
             var encryptedMsg = AesCryptoService.Encrypt(password, message);
-
-            Console.WriteLine(string.Join(",", encryptedMsg));
+            var encoder = new LsbEncoder(filePath, encryptedMsg, password);
+            Image<Rgba32>? encodedImage = null;
+            try 
+            {
+                encodedImage = encoder.Encode();
+            }
+            catch (InvalidOperationException)
+            {
+                _logger.LogError("Image file is too small to encode this message.");
+                Environment.Exit(1);
+            }
+            catch (TimeoutException)
+            {
+                _logger.LogError("Encoding is taking too long. Try using a larger image.");
+                Environment.Exit(1);
+            }
+            SaveEncodedFile(encodedImage, filePath);
         }
 
         public void RunDecrypt(string filePath, string password)
         {
-            CheckFilePath(filePath);
+            filePath = ResolveFilePath(filePath);
         }
 
     }

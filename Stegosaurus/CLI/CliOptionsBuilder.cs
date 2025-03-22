@@ -33,8 +33,3 @@ namespace Stegosaurus.CLI
         }
     }
 }
-
-            // rootCommand.SetHandler((string filePath) =>
-            // {
-            //     Console.WriteLine($"File provided: {filePath}");
-            // }, fileOption);
