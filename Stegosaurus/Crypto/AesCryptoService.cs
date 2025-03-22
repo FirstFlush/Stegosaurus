@@ -5,10 +5,6 @@ namespace Stegosaurus.Crypto
 {
     public static class AesCryptoService
     {
-        public static void CheckPassword(string password)
-        {
-            if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password cannot be empty!");
-        }
 
         public static byte[] BuildEncryptedData(byte[] salt, byte[] iv, byte[] ciphertext)
         {
@@ -22,7 +18,6 @@ namespace Stegosaurus.Crypto
         
         public static byte[] Encrypt(string password, string plaintext)
         {
-            CheckPassword(password);
             if (string.IsNullOrEmpty(plaintext)) throw new ArgumentException("Plaintext message cannot be empty!");
 
             (byte[] key, byte[] salt) = KeyDerivationService.DeriveKeyFromPassword(password);
@@ -49,7 +44,6 @@ namespace Stegosaurus.Crypto
 
         public static string Decrypt(string password, byte[] encryptedData)
         {
-            CheckPassword(password);
             if (encryptedData.Length == 0) throw new ArgumentException("Encrypted data must not be empty!");
 
             var salt = encryptedData[..16];
