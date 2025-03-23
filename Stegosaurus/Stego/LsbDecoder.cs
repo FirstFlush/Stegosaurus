@@ -1,18 +1,18 @@
-
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 
 namespace Stegosaurus.Stego
 {
-
     public class LsbDecoder
     {
-        private readonly string _filePath;
-        private readonly string _password;
+        private readonly Image<Rgba32> _image;
+        private readonly Random _prng;
 
         public LsbDecoder(string filePath, string password)
         {
-            _filePath = filePath;
-            _password = password;
+            _prng = StegoConstants.Prng(password);
+            _image = Image.Load<Rgba32>(filePath);
         }
     }
 }

@@ -55,14 +55,22 @@ namespace Stegosaurus.Core
             }
         }
 
+        private string ResolvePassword(string password)
+        {
+            while (string.IsNullOrWhiteSpace(password))
+                password = CliInputHandler.ReadPassword();
+            return password;
+        }
+
         public void RunEncrypt(string filePath, string password, string message)
         {
             filePath = ResolveFilePath(filePath);
-            while (string.IsNullOrWhiteSpace(password))
-                password = CliInputHandler.ReadPassword();
+            password = ResolvePassword(password);
+            Image<Rgba32>? encodedImage = null;
+
             var encryptedMsg = AesCryptoService.Encrypt(password, message);
             var encoder = new LsbEncoder(filePath, encryptedMsg, password);
-            Image<Rgba32>? encodedImage = null;
+            
             try 
             {
                 encodedImage = encoder.Encode();
@@ -83,6 +91,7 @@ namespace Stegosaurus.Core
         public void RunDecrypt(string filePath, string password)
         {
             filePath = ResolveFilePath(filePath);
+            password = ResolvePassword(password);
         }
 
     }

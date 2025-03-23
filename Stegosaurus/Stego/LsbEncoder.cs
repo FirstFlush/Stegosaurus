@@ -12,9 +12,9 @@ namespace Stegosaurus.Stego
 
         public LsbEncoder(string filePath, byte[] ciphertext, string password)
         {
-            _image = Image.Load<Rgba32>(filePath);
             _ciphertext = ciphertext;
             _prng = StegoConstants.Prng(password);
+            _image = Image.Load<Rgba32>(filePath);
         }
 
         private byte[] PrefixCiphertext()
@@ -51,7 +51,7 @@ namespace Stegosaurus.Stego
             var payload = PrefixCiphertext();
             var clonedImage = _image.Clone();
             int totalChannels = clonedImage.Width * clonedImage.Height * 3; // * 3 because we manipulate R,G,B channels and ignore A. Manipulating A channel can cause image distortion.
-            var usedChannels = new HashSet<int>(); // this hashset makes sure we don't overwrite a previously-encoded bit if our PRNG produces the same number twice.
+            var usedChannels = new HashSet<int>(); // this HashSet makes sure we don't overwrite a previously-encoded bit if our PRNG produces the same number twice.
 
             for (int i = 0; i < payload.Length; i++)
             {
@@ -61,7 +61,7 @@ namespace Stegosaurus.Stego
                     int bit = (b >> bitIndex) & 1;
                     int channelIndex;
                     int retries = 0;
-                    
+
                     do
                     {
                         channelIndex = _prng.Next(totalChannels);
