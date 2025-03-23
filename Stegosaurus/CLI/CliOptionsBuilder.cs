@@ -15,6 +15,8 @@ namespace Stegosaurus.CLI
             var fileOption = new Option<string>(["-f", "--file"], "Path to the PNG image") { IsRequired = true };
             var passwordOption = new Option<string>(["-p", "--password"], "Password") { IsRequired = false };
             var messageOption = new Option<string>(["-m", "--message"], "The message to be encrypted") { IsRequired = true };
+            var outfileEncryptOption = new Option<string>(["-o", "--outfile"], "Optional path to save the encoded PNG file") { IsRequired = false};
+            var outfileDecryptOption = new Option<string>(["-o", "--outfile"], "Optional path to save the extracted message") { IsRequired = false};
 
             var globalOptions = new Option[] { fileOption, passwordOption };
             foreach (var opt in globalOptions)
@@ -23,8 +25,10 @@ namespace Stegosaurus.CLI
                 decryptCommand.AddOption(opt);
             }
             encryptCommand.AddOption(messageOption);
-            encryptCommand.SetHandler(appRunner.RunEncrypt, fileOption, passwordOption, messageOption);
-            decryptCommand.SetHandler(appRunner.RunDecrypt, fileOption, passwordOption);
+            encryptCommand.AddOption(outfileEncryptOption);
+            decryptCommand.AddOption(outfileDecryptOption);
+            encryptCommand.SetHandler(appRunner.RunEncrypt, fileOption, passwordOption, messageOption, outfileEncryptOption);
+            decryptCommand.SetHandler(appRunner.RunDecrypt, fileOption, passwordOption, outfileDecryptOption);
 
             rootCommand.AddCommand(encryptCommand);
             rootCommand.AddCommand(decryptCommand);

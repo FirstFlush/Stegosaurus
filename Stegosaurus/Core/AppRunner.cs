@@ -20,9 +20,10 @@ namespace Stegosaurus.Core
 
         public string ResolveFilePath(string filePath)
         {
+            string? resolvedFilePath = null;
             try
             {
-                return CliInputHandler.ResolveFilePath(filePath);
+                resolvedFilePath = CliInputHandler.ResolveFilePath(filePath);
             }
             catch (FileNotFoundException)
             {
@@ -34,23 +35,64 @@ namespace Stegosaurus.Core
                 _logger.LogError("Unexpected error while resolving file path: {Message}", ex.Message);
                 Environment.Exit(1);
             }
-            return null!;
+            return resolvedFilePath;
         }
 
-        private void SaveEncodedFile(Image<Rgba32> image, string filePath)
+        public string ResolveOutfilePath(string outfilePath, bool requirePng)
         {
-            string fileName = Path.GetFileNameWithoutExtension(filePath);
-            string extension = Path.GetExtension(filePath);
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH:mm:ss"); 
-            string newFileName = $"{fileName}__{timestamp}{extension}";
-            string newFilePath = Path.Combine(Environment.CurrentDirectory, newFileName);
+            string? resolvedOutFilePath = null;
             try
             {
-                image.Save(newFilePath);
+                resolvedOutFilePath = CliInputHandler.ResolveOutfilePath(outfilePath, requirePng);
+            }
+            catch (ArgumentException ex)
+            {
+                if (requirePng)
+                {
+                    _logger.LogError("Outfile must be a .png file");
+                }
+                else
+                {
+                    _logger.LogError("An unknown error occured while resolving outfile path: {Message}", ex.Message);
+                }
+                Environment.Exit(1);
+            }
+            return resolvedOutFilePath;
+        }
+
+
+        private string GenerateOutfilePath(string filePath, bool isEncrypt)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            string extension = isEncrypt ? Path.GetExtension(filePath) : ".txt";
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"); 
+            string newFileName = $"{fileName}__{timestamp}{extension}";
+            return Path.Combine(Environment.CurrentDirectory, newFileName);
+        }
+
+        private void SaveEncodedFile(Image<Rgba32> image, string outfilePath)
+        {
+            try
+            {
+                image.Save(outfilePath);
             }
             catch (Exception ex)
             {
                 _logger.LogError("Unexpected error while saving file: {Message}", ex.Message);
+                Environment.Exit(1);
+            }
+        }
+
+
+        private void SaveDecodedFile(string outfilePath, string message)
+        {
+            try
+            {
+                File.WriteAllText(outfilePath, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unexpected error while saving file to {Outfile}: {Message}", outfilePath, ex.Message);
                 Environment.Exit(1);
             }
         }
@@ -62,10 +104,15 @@ namespace Stegosaurus.Core
             return password;
         }
 
-        public void RunEncrypt(string filePath, string password, string message)
+        public void RunEncrypt(string filePath, string password, string message, string? outfilePath)
         {
             filePath = ResolveFilePath(filePath);
             password = ResolvePassword(password);
+            if (string.IsNullOrWhiteSpace(outfilePath))
+            {
+                outfilePath = GenerateOutfilePath(filePath, true);
+            }
+            outfilePath = ResolveOutfilePath(outfilePath, true);
             Image<Rgba32>? encodedImage = null;
 
             var encryptedMsg = AesCryptoService.Encrypt(password, message);
@@ -85,14 +132,33 @@ namespace Stegosaurus.Core
                 _logger.LogError("Encoding is taking too long. Try using a larger image.");
                 Environment.Exit(1);
             }
-            SaveEncodedFile(encodedImage, filePath);
+            SaveEncodedFile(encodedImage, outfilePath);
         }
 
-        public void RunDecrypt(string filePath, string password)
+        public void RunDecrypt(string filePath, string password, string? outfilePath)
         {
             filePath = ResolveFilePath(filePath);
+            if (string.IsNullOrWhiteSpace(outfilePath))
+            {
+                outfilePath = GenerateOutfilePath(filePath, false);
+            }
+            outfilePath = ResolveOutfilePath(outfilePath, false);
             password = ResolvePassword(password);
-        }
 
+            var decoder = new LsbDecoder(filePath, password);
+            byte[]? decodedMessage = null; 
+            try
+            {
+                decodedMessage = decoder.Decode();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Decoding failed due to the following exception: {Message}", ex.Message);
+                Environment.Exit(1);
+            }
+            string message = AesCryptoService.Decrypt(password, decodedMessage);
+            SaveDecodedFile(outfilePath, message);
+        }
     }
 }

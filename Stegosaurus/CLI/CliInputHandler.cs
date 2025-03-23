@@ -38,5 +38,18 @@ namespace Stegosaurus.CLI
 
             return password;
         }   
+
+        public static string ResolveOutfilePath(string outfilePath, bool requirePng)
+        {
+            if (!Path.IsPathRooted(outfilePath))
+            {
+                outfilePath = Path.GetFullPath(outfilePath);
+            }
+            if (requirePng && Path.GetExtension(outfilePath).ToLower() != ".png")
+            {
+                throw new ArgumentException("Outfile must be a .png file");
+            }
+            return outfilePath;
+        }
     }
 }
