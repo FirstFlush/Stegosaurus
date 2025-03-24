@@ -21,13 +21,13 @@ It combines strong AES encryption (via PBKDF2-derived keys) with image steganogr
 Stegosaurus is currently in **beta** because it depends on the beta version of the `System.CommandLine` package.
 
 ```bash
-dotnet add package Stegosaurus --version 1.0.3-beta
+dotnet add package Stegosaurus --version 1.0.4-beta
 ```
 
 Or manually add it to your .csproj file:
 
 ```xml
-<PackageReference Include="Stegosaurus" Version="1.0.3-beta" />
+<PackageReference Include="Stegosaurus" Version="1.0.4-beta" />
 ```
 
 
