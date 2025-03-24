@@ -26,4 +26,10 @@
     <ProjectReference Include="..\Stegosaurus\Stegosaurus.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Assets\Images\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
