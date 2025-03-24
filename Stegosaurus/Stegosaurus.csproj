@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-      <Version>1.0.1-beta</Version>
+      <Version>1.0.2-beta</Version>
       <Authors>Michael Pearce</Authors>
       <Description>Stegosaurus is a lightweight steganography tool using LSB encoding and AES encryption.</Description>
       <PackageTags>steganography, security, cryptography, encoding, LSB</PackageTags>
