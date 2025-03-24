@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReadmeFile>../README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
