@@ -7,5 +7,17 @@ jobs:
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.x
-      - run: dotnet build
+      - run: dotnet build --configuration Release
       - run: dotnet test
+      - run: dotnet pack --configuration Release
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.x
+      - run: dotnet nuget push Stegosaurus/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
