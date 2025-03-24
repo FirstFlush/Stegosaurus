@@ -20,4 +20,4 @@ jobs:
         with:
           dotnet-version: 8.x
       - run: dotnet pack Stegosaurus/Stegosaurus.csproj --configuration Release
-      - run: dotnet nuget push Stegosaurus/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - run: dotnet nuget push Stegosaurus/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
