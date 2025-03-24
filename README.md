@@ -1,5 +1,7 @@
 # Stegosaurus
 
+[![NuGet](https://img.shields.io/nuget/vpre/Stegosaurus?label=NuGet&logo=nuget)](https://www.nuget.org/packages/Stegosaurus/)
+
 **Stegosaurus** is a lightweight command-line tool written in C# for securely hiding encrypted messages inside PNG images using LSB (Least Significant Bit) steganography.
 
 It combines strong AES encryption (via PBKDF2-derived keys) with image steganography, making it suitable for sending secret messages disguised inside innocuous-looking image files.
@@ -12,6 +14,21 @@ It combines strong AES encryption (via PBKDF2-derived keys) with image steganogr
 - **PRNG-controlled encoding** Pseudo-random number generator (PRNG) for added entropy based on password hash
 - **Graceful error handling** for corrupt, small, or invalid image files
 - **PNG-only** for now — JPG support would require DCT-based encoding
+
+
+## 📦 Installation
+
+Stegosaurus is currently in **beta** because it depends on the beta version of the `System.CommandLine` package.
+
+```bash
+dotnet add package Stegosaurus --version 1.0.3-beta
+```
+
+Or manually add it to your .csproj file:
+
+```xml
+<PackageReference Include="Stegosaurus" Version="1.0.3-beta" />
+```
 
 
 ## 🚀 Usage
