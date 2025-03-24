@@ -9,7 +9,8 @@ jobs:
           dotnet-version: 8.x
       - run: dotnet build --configuration Release
       - run: dotnet test
-      - run: dotnet pack --configuration Release
+      - run: dotnet pack --configuration Release --output nupkg
+        working-directory: Stegosaurus
 
   publish:
     needs: build-and-test
