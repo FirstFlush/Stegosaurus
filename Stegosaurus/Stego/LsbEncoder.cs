@@ -14,7 +14,7 @@ namespace Stegosaurus.Stego
         {
             _ciphertext = ciphertext;
             _prng = StegoConstants.Prng(password);
-            _image = Image.Load<Rgba32>(filePath);
+            _image = Image.Load<Rgba32>(filePath); // May throw UnknownImageFormatException if image is invalid or not a PNG
         }
 
         private byte[] PrefixCiphertext()

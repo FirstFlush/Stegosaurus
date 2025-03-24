@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -10,7 +9,6 @@ namespace Stegosaurus.Core
 {
     public class AppRunner
     {
-
         private readonly ILogger<AppRunner> _logger;
 
         public AppRunner(ILogger<AppRunner> logger)
@@ -60,7 +58,6 @@ namespace Stegosaurus.Core
             return resolvedOutFilePath;
         }
 
-
         private string GenerateOutfilePath(string filePath, bool isEncrypt)
         {
             string fileName = Path.GetFileNameWithoutExtension(filePath);
@@ -82,7 +79,6 @@ namespace Stegosaurus.Core
                 Environment.Exit(1);
             }
         }
-
 
         private void SaveDecodedFile(string outfilePath, string message)
         {
@@ -113,14 +109,15 @@ namespace Stegosaurus.Core
                 outfilePath = GenerateOutfilePath(filePath, true);
             }
             outfilePath = ResolveOutfilePath(outfilePath, true);
-            Image<Rgba32>? encodedImage = null;
-
-            var encryptedMsg = AesCryptoService.Encrypt(password, message);
-            var encoder = new LsbEncoder(filePath, encryptedMsg, password);
             
             try 
             {
-                encodedImage = encoder.Encode();
+                var encryptedMsg = AesCryptoService.Encrypt(password, message);
+                var encoder = new LsbEncoder(filePath, encryptedMsg, password);
+                Image<Rgba32> encodedImage = encoder.Encode();
+                SaveEncodedFile(encodedImage, outfilePath);
+                _logger.LogInformation("Message successfully encrypted and encoded.");
+                _logger.LogInformation("Saved outfile to: {Outfile}", outfilePath);
             }
             catch (InvalidOperationException)
             {
@@ -129,10 +126,20 @@ namespace Stegosaurus.Core
             }
             catch (TimeoutException)
             {
-                _logger.LogError("Encoding is taking too long. Try using a larger image.");
+                _logger.LogError("Encoding is taking too long. This means the image file is too small, and the PRNG (pseudo-random number generator) is taking too long to find available bits. Try using a larger image.");
                 Environment.Exit(1);
             }
-            SaveEncodedFile(encodedImage, outfilePath);
+            catch (UnknownImageFormatException)
+            {
+                _logger.LogError("Can not load image file. Ensure you are using a PNG file. If you are using a PNG then your image may be corrupted.");
+                Environment.Exit(1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("An unexpected error has occurred: {Message}", ex.Message);
+                Environment.Exit(1);
+            }
+
         }
 
         public void RunDecrypt(string filePath, string password, string? outfilePath)
@@ -145,20 +152,24 @@ namespace Stegosaurus.Core
             outfilePath = ResolveOutfilePath(outfilePath, false);
             password = ResolvePassword(password);
 
-            var decoder = new LsbDecoder(filePath, password);
-            byte[]? decodedMessage = null; 
             try
             {
-                decodedMessage = decoder.Decode();
-
+                var decoder = new LsbDecoder(filePath, password);
+                byte[] decodedMessage = decoder.Decode();
+                string message = AesCryptoService.Decrypt(password, decodedMessage);
+                SaveDecodedFile(outfilePath, message);
+                _logger.LogInformation("Message successfully saved to: {Outfile}", outfilePath);
+            }
+            catch (UnknownImageFormatException)
+            {
+                _logger.LogError("Can not load image file. Ensure you are using a PNG file. If you are using a PNG then your image may be corrupted.");
+                Environment.Exit(1);
             }
             catch (Exception ex)
             {
                 _logger.LogError("Decoding failed due to the following exception: {Message}", ex.Message);
                 Environment.Exit(1);
             }
-            string message = AesCryptoService.Decrypt(password, decodedMessage);
-            SaveDecodedFile(outfilePath, message);
         }
     }
 }
